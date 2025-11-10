@@ -2,7 +2,6 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 export default function ProfileSidebar() {
-  // Try to load the user from localStorage
   const storedUser = localStorage.getItem("user");
   const user = storedUser ? JSON.parse(storedUser) : null;
 
@@ -33,12 +32,12 @@ export default function ProfileSidebar() {
             className="w-28 h-28 rounded-full border-4 border-gray-200 shadow-sm object-cover"
           />
           <h3 className="mt-4 text-lg font-semibold text-gray-700">Guest User</h3>
-          <p className="text-sm text-gray-500 mb-3">Not signed in</p>
+          <p className="text-sm text-gray-500 mb-3">Not loggedIn </p>
           <Link
             to="/signin"
             className="text-blue-600 hover:underline font-medium"
           >
-            Sign In
+            Login In
           </Link>
         </div>
       )}

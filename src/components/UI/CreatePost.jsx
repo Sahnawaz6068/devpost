@@ -1,10 +1,10 @@
-// src/components/CreatePost.jsx
+
 import React, { useState } from "react";
 import axiosInstance from "../../api/axiosInstance";
 
 const CreatePost = ({ onPostCreated }) => {
   const [text, setText] = useState("");
-  const [imageUrl, setImageUrl] = useState(""); // optional
+  const [imageUrl, setImageUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -22,7 +22,7 @@ const CreatePost = ({ onPostCreated }) => {
       }
 
       const response = await axiosInstance.post("/post/createPost", {
-        userId: user._id, // use user ID from localStorage
+        userId: user._id,
         text,
         imageUrl,
       });
@@ -31,7 +31,6 @@ const CreatePost = ({ onPostCreated }) => {
       setText("");
       setImageUrl("");
 
-      // Notify parent component to update the feed
       if (onPostCreated) onPostCreated(response.data.post);
     } catch (error) {
       console.error("Error creating post:", error);

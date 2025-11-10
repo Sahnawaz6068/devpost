@@ -3,10 +3,16 @@ import { useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 import ProfileSidebar from "../components/UI/ProfileSidebar";
 import CreatePost from "../components/UI/CreatePost";
-import PostList from "../components/UI/PostList"; // Import the dumb component
+import PostList from "../components/UI/PostList"; 
 
 const Home = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) navigate("/signin");
+  }, [navigate]);
+
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -15,7 +21,7 @@ const Home = () => {
     const fetchPosts = async () => {
       try {
         setLoading(true);
-        setError(""); // Clear previous errors
+        setError(""); 
 
         const response = await axiosInstance.get("/post/feed");
 
@@ -27,7 +33,7 @@ const Home = () => {
       } catch (err) {
         if (err.response?.status === 401 || err.response?.status === 403) {
           setError("You must be logged in to see the feed.");
-          navigate("/signin"); // Redirect to the sign-in page
+          navigate("/signin"); 
         } else {
           setError(err.response?.data?.message || "Error fetching feed");
           console.error(err);
