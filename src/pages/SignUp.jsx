@@ -1,98 +1,144 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axiosInstance from "../api/axiosInstance"; 
 
-const getAuthData = () => {
-  const token = localStorage.getItem("token");
-  const userString = localStorage.getItem("user");
-  let user = null;
-  try {
-    user = userString ? JSON.parse(userString) : null;
-  } catch (error) {
-    console.error("Failed to parse user data from localStorage", error);
-  }
-  return { token, user };
-};
-
-const Navbar = () => {
-  const [auth, setAuth] = useState(getAuthData());
+export default function SignUp() {
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const handleAuthChange = () => {
-      setAuth(getAuthData());
-    };
+    const token = localStorage.getItem("token");
+    if (token) navigate("/");
+  }, [navigate]);
 
-    window.addEventListener("authChange", handleAuthChange);
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    avatarUrl: "",
+  });
 
-    return () => {
-      window.removeEventListener("authChange", handleAuthChange);
-    };
-  }, []);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.dispatchEvent(new Event("authChange"));
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const avatarUrl = auth.user?.avatarUrl;
-  const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-  const displayAvatar = avatarUrl || defaultAvatar;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await axiosInstance.post("/auth/register", form);
+
+      // API returns { user, token }
+      const { user, token } = response.data;
+
+      // store token + user
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      navigate("/"); // redirect to home/feed page
+    } catch (err) {
+      console.error("Signup failed:", err);
+      setError(err.response?.data?.message || "Something went wrong!");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 flex justify-center py-3 sm:py-4 px-4 sm:px-6 bg-transparent">
-      <div className="backdrop-blur-md bg-white/20 border border-white/30 shadow-lg rounded-full px-4 sm:px-8 py-2 sm:py-3 flex flex-col sm:flex-row items-center sm:justify-between w-full max-w-5xl gap-3">
-        <Link to="/">
-          <div className="flex items-center space-x-2">
-            <span className="text-[#0078b7] font-bold text-lg">DevPost</span>
-            <img
-              src="https://www.butterflybeginningscounseling.com/wp-content/uploads/2020/12/linkedin-icon.jpg"
-              alt="logo"
-              className="h-6 w-6 sm:h-6 sm:w-6"
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 relative">
+      <div className="fixed top-0 left-0 w-full z-50 flex justify-center py-4 px-6 bg-transparent"></div>
+
+      <div className="w-full max-w-md bg-white/90 backdrop-blur-sm shadow-lg rounded-2xl p-8 mt-16">
+        <h2 className="text-2xl font-bold text-center text-[#0078b7] mb-6">
+          Create your account
+        </h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Full Name
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              placeholder="Enter your name"
+              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-400 outline-none"
+              required
             />
           </div>
-        </Link>
 
-        <div className="flex items-center space-x-3">
-          {auth.token ? (
-            <>
-              <Link
-                to="/me"
-                className="bg-white p-1.5 rounded-full shadow-md hover:bg-blue-100 transition"
-                title="Profile"
-              >
-                <img
-                  src={displayAvatar}
-                  alt="Profile"
-                  className="h-6 w-6 rounded-full object-cover"
-                />
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="bg-white text-red-500 font-semibold text-sm sm:text-base px-3 sm:px-4 py-1 rounded-full shadow-md hover:bg-red-100 transition"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                to="/signup"
-                className="bg-white text-[#0078b7] font-semibold text-sm sm:text-base px-3 sm:px-4 py-1 rounded-full shadow-md hover:bg-blue-100 transition"
-              >
-                Sign up
-              </Link>
-              <Link
-                to="/signin"
-                className="bg-white text-[#0078b7] font-semibold text-sm sm:text-base px-3 sm:px-4 py-1 rounded-full shadow-md hover:bg-blue-100 transition"
-              >
-                Login
-              </Link>
-            </>
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Email Address
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="Enter your email"
+              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-400 outline-none"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Password
+            </label>
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Enter a strong password"
+              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-400 outline-none"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Avatar URL (optional)
+            </label>
+            <input
+              type="url"
+              name="avatarUrl"
+              value={form.avatarUrl}
+              onChange={handleChange}
+              placeholder="https://example.com/avatar.jpg"
+              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-400 outline-none"
+            />
+          </div>
+
+          {error && (
+            <p className="text-red-500 text-sm text-center">{error}</p>
           )}
-        </div>
-      </div>
-    </nav>
-  );
-};
 
-export default Navbar;
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full bg-[#0078b7] text-white py-2 rounded-md transition ${
+              loading ? "opacity-70 cursor-not-allowed" : "hover:bg-blue-700"
+            }`}
+          >
+            {loading ? "Creating account..." : "Sign Up"}
+          </button>
+        </form>
+
+        <p className="text-center text-sm mt-4 text-gray-600">
+          Already have an account?{" "}
+          <Link to="/signin" className="text-[#0078b7] hover:underline">
+            Sign In
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}
